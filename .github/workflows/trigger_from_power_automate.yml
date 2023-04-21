@@ -77,7 +77,9 @@ jobs:
             ${{ runner.os }}-buildx-
 
       - name: Create validation script to run in Docker
-        run: curl https://gist.githubusercontent.com/sorrell/e45cb8e448af14237a20dcee9b8864ec/raw/e9a7e1c08c6b42538045dc0dfc7477671e158544/validate_docker.sh > validate.sh
+        run: |
+          curl https://gist.githubusercontent.com/sorrell/e45cb8e448af14237a20dcee9b8864ec/raw/e9a7e1c08c6b42538045dc0dfc7477671e158544/validate_docker.sh > validate.sh
+          chmod +x validate.sh
 
       - name: Build Docker image
         uses: docker/build-push-action@v2
