@@ -1,6 +1,8 @@
 name: Trigger from Power Automate
 
-on: repository_dispatch
+on: 
+  - repository_dispatch
+  - workflow_dispatch
 
 jobs:
   # use_extracted_data:
