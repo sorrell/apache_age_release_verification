@@ -1,0 +1,46 @@
+name: Trigger from Power Automate
+
+on:
+  repository_dispatch:
+    types: [repository_dispatch]
+    inputs:
+      extracted_data:
+        description: 'Extracted Data from OpenAI API'
+        required: true
+        default: ''
+
+jobs:
+  use_extracted_data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use extracted data
+        run: echo ${{ github.event.inputs.extracted_data }}
+
+      # - name: Checkout repository
+      #   uses: actions/checkout@v2
+
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v1
+
+      # - name: Cache Docker layers
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: /tmp/.buildx-cache
+      #     key: ${{ runner.os }}-buildx-${{ github.sha }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-buildx-
+
+      # - name: Build Docker image
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     context: .
+      #     file: ./Dockerfile
+      #     builder: ${{ steps.buildx.outputs.name }}
+      #     cache-from: type=local,src=/tmp/.buildx-cache
+      #     cache-to: type=local,dest=/tmp/.buildx-cache
+      #     tags: age_rel_verifier:latest
+
+      # - name: Run tests in Docker container
+      #   run: docker run --rm age_rel_verifier:latest <TEST_COMMAND>
+
+     
