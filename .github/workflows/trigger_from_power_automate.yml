@@ -1,20 +1,13 @@
 name: Trigger from Power Automate
 
-on:
-  repository_dispatch:
-    types: [repository_dispatch]
-    inputs:
-      extracted_data:
-        description: 'Extracted Data from OpenAI API'
-        required: true
-        default: ''
+on: repository_dispatch
 
 jobs:
   use_extracted_data:
     runs-on: ubuntu-latest
     steps:
       - name: Use extracted data
-        run: echo ${{ github.event.inputs.extracted_data }}
+        run: echo ${{ github.event.extracted_data }}
 
       # - name: Checkout repository
       #   uses: actions/checkout@v2
