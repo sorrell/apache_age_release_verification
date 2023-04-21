@@ -3,22 +3,65 @@ name: Trigger from Power Automate
 on: repository_dispatch
 
 jobs:
-  use_extracted_data:
+  # use_extracted_data:
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  #     FINGERPRINT: ${{ github.event.client_payload.fingerprint }}
+  #     PG_VERSION: ${{ github.event.client_payload.postgresql_version }}
+  #     AGE_VERSION: ${{ github.event.client_payload.apache_age_version }}
+  #     RC_VERSION: ${{ github.event.client_payload.rc_version }}
+  #     COMMIT_HASH: ${{ github.event.client_payload.git_commit_hash }}
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v2
+
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v1
+
+  #     - name: Cache Docker layers
+  #       uses: actions/cache@v2
+  #       with:
+  #         path: /tmp/.buildx-cache
+  #         key: ${{ runner.os }}-buildx-${{ github.sha }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-buildx-
+
+  #     - name: Build Docker image
+  #       uses: docker/build-push-action@v2
+  #       with:
+  #         context: .
+  #         file: ./Dockerfile
+  #         builder: ${{ steps.buildx.outputs.name }}
+  #         cache-from: type=local,src=/tmp/.buildx-cache
+  #         cache-to: type=local,dest=/tmp/.buildx-cache
+  #         tags: age_rel_verifier:latest
+  #         load: true
+
+  #     - name: Run tests in Docker container
+  #       run: |
+  #         docker run \
+  #         -e OPENAI_API_KEY="$OPENAI_API_KEY" \
+  #         -e FINGERPRINT="$FINGERPRINT" \
+  #         -e PG_VERSION="$PG_VERSION" \
+  #         -e AGE_VERSION="$AGE_VERSION" \
+  #         -e RC_VERSION="$RC_VERSION" \
+  #         -e COMMIT_HASH="$COMMIT_HASH" \
+  #         age_rel_verifier:latest
+  
+  build_age:
     runs-on: ubuntu-latest
     env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      FINGERPRINT: ${{ github.event.client_payload.fingerprint }}
       PG_VERSION: ${{ github.event.client_payload.postgresql_version }}
       AGE_VERSION: ${{ github.event.client_payload.apache_age_version }}
       RC_VERSION: ${{ github.event.client_payload.rc_version }}
       COMMIT_HASH: ${{ github.event.client_payload.git_commit_hash }}
     steps:
-      - name: Use extracted data
-        run: 'echo "A: ${{ github.event.client_payload }}"'
-      - run: 'echo "C: ${{ toJSON(github.event.client_payload.fingerprint) }}"'
-
-      - name: Checkout repository
+      - name: Checkout other repository
         uses: actions/checkout@v2
+        with:
+          repository: apache/age
+          ref: ${{ env.COMMIT_HASH }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -31,6 +74,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
+      - name: Create temporary Dockerfile
+        run: curl https://gist.githubusercontent.com/sorrell/2d2111428306517b0bb1219f4757736e/raw/e79a36e7f0c6ef92a3f8943da3c6ef965b842c61/validate.sh >> validate.sh
+
       - name: Build Docker image
         uses: docker/build-push-action@v2
         with:
@@ -39,18 +85,9 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
-          tags: age_rel_verifier:latest
+          tags: testage:${{ env.AGE_VERSION }}
           load: true
 
       - name: Run tests in Docker container
-        run: |
-          docker run \
-          -e OPENAI_API_KEY="$OPENAI_API_KEY" \
-          -e FINGERPRINT="$FINGERPRINT" \
-          -e PG_VERSION="$PG_VERSION" \
-          -e AGE_VERSION="$AGE_VERSION" \
-          -e RC_VERSION="$RC_VERSION" \
-          -e COMMIT_HASH="$COMMIT_HASH" \
-          age_rel_verifier:latest
-
+        run: docker run -v $(pwd):/app -w /app --entrypoint /app/validate.sh -d --rm --name testage -e POSTGRES_PASSWORD=pass testage:${{ env.AGE_VERSION }}
      
