@@ -71,18 +71,28 @@ def verify_pgp_signature(file_path):
     print(f"Prompt: {prompt}")
 
     parameters = {
-        "engine": "text-davinci-003",
-        "prompt": prompt,
+        "model": "gpt-3.5-turbo",
+        "max_tokens": 250,
+        "n": 1,
         "temperature": 0.5,
-        "max_tokens": 2500,
+        "messages": [
+            {
+            "role": "system",
+            "content": "You are a helpful assistant that is an expert in parsing gpg signatures and turning information into JSON objects. Your JSON should be lowercase, snakecase, and well-formed valid JSON. "
+            },
+            {
+            "role": "user",
+            "content": prompt
+            }
+        ]
     }
-    response = openai.Completion.create(**parameters)
-    text = response.choices[0].text
+    response = openai.ChatCompletion.create(**parameters)
+    text = response.choices[0].message.content
     json_response = json.loads(text)
     print(f"Response: {json_response}")
     if json_response["good_sig"] == "yes":
         print(f"{SUCCESS_EMOJI} PGP signature of {file_path} verified")
-    if json_response["fingerprint"] == SIG_FINGERPRINT:
+    if json_response["fingerprint"].replace(' ', '') == SIG_FINGERPRINT:
         print(f"{SUCCESS_EMOJI} PGP fingerprint of {file_path} verified")
 
 # Function to verify the SHA512 hash of a file
@@ -111,6 +121,9 @@ def clone_repo(repo_url, target_directory, commit_hash=None):
         os.chdir(target_directory)
         subprocess.run(["git", "checkout", commit_hash])
         os.chdir("..")
+        print(f"{SUCCESS_EMOJI} Git repo {repo_url} cloned to {target_directory} at commit {commit_hash}")
+    else:
+        print(f"{FAILURE_EMOJI} Git repo {repo_url} cloned to {target_directory} but no commit hash was provided")
 
 # Function to check git tag
 def check_git_tag(target_directory):
@@ -118,13 +131,14 @@ def check_git_tag(target_directory):
     os.chdir(target_directory)
     # Check tag
     subprocess.run(["git", "fetch", "origin", "refs/tags/*:refs/tags/*"])
-    tag_commit = subprocess.check_output(
-        ["git", "rev-list", "-n", "1", f"{PG_VERSION}/v{AGE_VERSION}-{RC_VERSION}"], text=True
-    ).strip()
+    tag = f"PG{PG_VERSION}/v{AGE_VERSION}-{RC_VERSION}"
+    resp = subprocess.run(["git", "rev-list", "-n", "1", f"{tag}"], capture_output=True)
+    tag_commit = resp.stdout.decode().strip()
 
     if tag_commit != COMMIT_HASH:
-        print("Error: Git tag does not match commit hash")
-        return
+        print(f"{FAILURE_EMOJI} Error: Git tag commit {tag_commit} \ndoes not match commit hash {COMMIT_HASH}")
+    else:
+        print(f"{SUCCESS_EMOJI} Git tag {tag} verified")
     os.chdir("..")
 
 # Function to calculate file checksum using SHA256
@@ -139,6 +153,7 @@ def compare_checksums():
     # Compare the file checksums between the two clones
     match_count = 0
     mismatch_count = 0
+    found_in_release_count = 0
     
     for file_a in AGE_PATH.glob("**/*"):
         if file_a.is_file():
@@ -154,10 +169,12 @@ def compare_checksums():
                     print(f"{FAILURE_EMOJI} Mismatch: {file_a} and {file_b}")
                     mismatch_count += 1
             else:
-                print(f"{FAILURE_EMOJI} File {file_b} not found in repo_B")
+                print(f"{FAILURE_EMOJI} File {file_b} not found in Git release, but in Apache release")
     
     print(f"Total matches: {match_count}")
     print(f"Total mismatches: {mismatch_count}")
+    if mismatch_count == 0 and found_in_release_count == 0:
+        print(f"{SUCCESS_EMOJI} All checksums and files match between Apache release and Git release")
 
 # main
 # print out the global vars calling function
