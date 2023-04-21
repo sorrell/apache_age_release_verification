@@ -40,6 +40,7 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
           tags: age_rel_verifier:latest
+          load: true
 
       - name: Run tests in Docker container
         run: docker run --rm age_rel_verifier:latest \
