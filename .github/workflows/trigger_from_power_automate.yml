@@ -7,9 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Use extracted data
-        run: 'echo "data: ${{ github.event.client_payload.extracted_data.data }}"'
-      - run: 'echo "field: ${{ github.event.client_payload.extracted_data.fingerprint }}"'
-      - run: 'echo "field: ${{ github.event.client_payload.extracted_data.postgresql_version }}"'
+        run: 'echo "A: ${{ github.event.client_payload.extracted_data }}"'
+      - run: 'echo "B: ${{ fromJSON(github.event.client_payload.extracted_data) }}"'
+      - run: 'echo "C: ${{ toJSON(github.event.client_payload.extracted_data) }}"'
 
 
       # - name: Checkout repository
