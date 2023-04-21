@@ -44,11 +44,11 @@ jobs:
 
       - name: Run tests in Docker container
         run: docker run --rm age_rel_verifier:latest \
-          -e OPENAI_API_KEY=$OPENAI_API_KEY \
-          -e FINGERPRINT=$FINGERPRINT \
-          -e PG_VERSION=$PG_VERSION \
-          -e AGE_VERSION=$AGE_VERSION \
-          -e RC_VERSION=$RC_VERSION \
-          -e COMMIT_HASH=$COMMIT_HASH
+          -e OPENAI_API_KEY='$OPENAI_API_KEY' \
+          -e FINGERPRINT='$FINGERPRINT' \
+          -e PG_VERSION='$PG_VERSION' \
+          -e AGE_VERSION='$AGE_VERSION' \
+          -e RC_VERSION='$RC_VERSION' \
+          -e COMMIT_HASH='$COMMIT_HASH'
 
      
