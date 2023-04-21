@@ -8,8 +8,7 @@ jobs:
     steps:
       - name: Use extracted data
         run: 'echo "A: ${{ github.event.client_payload }}"'
-      - run: 'echo "B: ${{ fromJSON(github.event.client_payload) }}"'
-      - run: 'echo "C: ${{ toJSON(github.event.client_payload) }}"'
+      - run: 'echo "C: ${{ toJSON(github.event.client_payload.fingerprint) }}"'
 
 
       # - name: Checkout repository
