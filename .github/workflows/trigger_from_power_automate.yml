@@ -87,7 +87,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
-          tags: testage:${{ env.AGE_VERSION }}
+          tags: testage:1.3.0
           load: true
 
       - name: Run tests in Docker container
