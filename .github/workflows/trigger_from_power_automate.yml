@@ -76,8 +76,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Create temporary Dockerfile
-        run: curl https://gist.githubusercontent.com/sorrell/2d2111428306517b0bb1219f4757736e/raw/e79a36e7f0c6ef92a3f8943da3c6ef965b842c61/validate.sh >> validate.sh
+      - name: Create validation script to run in Docker
+        run: curl https://gist.githubusercontent.com/sorrell/e45cb8e448af14237a20dcee9b8864ec/raw/e9a7e1c08c6b42538045dc0dfc7477671e158544/validate_docker.sh > validate.sh
 
       - name: Build Docker image
         uses: docker/build-push-action@v2
@@ -91,5 +91,5 @@ jobs:
           load: true
 
       - name: Run tests in Docker container
-        run: docker run -v $(pwd):/app -w /app --entrypoint /app/validate.sh -d --rm --name testage -e POSTGRES_PASSWORD=pass testage:${{ env.AGE_VERSION }}
+        run: docker run -v $(pwd):/app -w /app --entrypoint /app/validate.sh --rm --name testage -e POSTGRES_PASSWORD=pass testage:1.3.0
      
